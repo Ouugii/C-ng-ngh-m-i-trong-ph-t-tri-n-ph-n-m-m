@@ -1,0 +1,30 @@
+version: "3"
+services:
+  backend:
+    image: tranphuongthai/da-backend
+    build:
+      context: ./backend
+    ports:
+      - "3030:3030"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - mongodb
+
+  frontend:
+    image: tranphuongthai/da-frontend
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+
+volumes:
+  mongodb-data:

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ATM</title>
+    <style>
+    
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #ffffff;
+      }
+    
+      .MainContainer {
+        width: 100%;
+        max-width: 325px;
+        margin: auto;
+      }
+    
+      .header {
+        background-color: #e8e8e8;
+        padding: 15px;
+        text-align: center;
+        font-weight: bold;
+        border-bottom: 1px solid #ccc;
+        position: relative;
+      }
+    
+       .ShowUser{
+        padding: 20px;
+       }
+       .Link-Con{
+        border-bottom: 1px solid #e6e6e6;
+    padding: 5px 20px;
+    display: flex;
+    justify-content: space-between;
+       }
+      .form-input {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+    
+      .form-input input {
+        border: none;
+        font-size: 18px;
+        background-color: #fcffd8;
+        padding: 5px;
+    margin: 0px 10px;
+
+      }
+    
+      .button {
+        text-align: center;
+      }
+    
+      .button button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #ffffff;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 5px 0px;
+        width: 100%;
+      }
+    
+      .button button:hover {
+        background-color: #0056b3;
+      }
+    
+      .link {
+        
+        padding: 15px;
+        cursor: pointer;
+     
+        text-decoration: none;
+      }
+    
+      .previous {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+    
+      .link:hover {
+        text-decoration: underline;
+      }
+    .content{
+      text-align: center;
+      padding: 20px 0px;
+    }
+     .line{
+      width: 95%;
+      margin: auto;
+      border-bottom: 1px solid rgb(226, 226, 226);
+     }
+    
+    </style>
+    
+  </head>
+  <body>
+    <div class="MainContainer">
+      <div id="loginPanel">
+        <div class="header">Hệ thống ATM</div>
+        <div class="container">
+          <div class="form-input">
+            <label>--- Đăng nhập ---</label>
+            <input type="text" id="userID" placeholder="Nhập số tài khoản" />
+            <span class="line"></span>
+            <input type="password" id="userPassword" placeholder="Nhập mật khẩu" />
+            <span class="line"></span>
+          </div>
+          <div class="button">
+            <button onclick="performLogin()">OK</button>
+            <div class="link" onclick="switchPanel('registrationPanel')">
+              [Đăng ký tài khoản]
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="registrationPanel" style="display: none">
+        <div class="header">
+          <span class="link previous" onclick="navigateBack('loginPanel')">Back</span>
+          Đăng ký tài khoản
+        </div>
+        <div class="container">
+          <div class="form-input">
+            <input
+              type="text"
+              id="newUserID"
+              placeholder="Nhập số tài khoản"
+            />
+            <span class="line"></span>
+            <input type="password" id="newUserPassword" placeholder="Nhập mật khẩu" />
+            <span class="line"></span>
+            <input type="text" id="newUserName" placeholder="Nhập tên" />
+            <span class="line"></span>
+            <input
+              type="number"
+              id="initialDeposit"
+              placeholder="Nhập số tiền gửi vào"
+            />
+            <span class="line"></span>
+          </div>
+          <div class="button">
+            <button onclick="performRegistration()">Đăng ký</button>
+          </div>
+        </div>
+      </div>
+      <div id="dashboardPanel" style="display: none">
+        <div class="header">
+          <span class="link previous" onclick="navigateBack('loginPanel')">Back</span>
+          Hệ thống ATM
+        </div>
+        <div class="container">
+          <div class="ShowUser">---Tài khoản: <span id="loggedInEmail"></span>---</div>
+          <div class="Link-Con" onclick="viewAccountDetails()">
+            <div>[Xem thông tin tài khoản]</div>
+            <div>></div>
+          </div>
+        </div>
+      </div>
+      <div id="detailsPanel" style="display: none">
+        <div class="header">
+          <span class="link previous" onclick="navigateBack('dashboardPanel')">Back</span>
+          Hệ thống ATM
+        </div>
+        <div class="container">
+          <div class="content">---Tài khoản: <span id="detailEmail"></span>---</div>
+          <div class="content">---Chi tiết---</div>
+          <div class="content">Tên:<span id="userName"></span></div>
+          <div class="content">Số tiền còn lại: <span id="accountBalance"></span></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const BASE_URL = "http://localhost:3030";
+  
+      async function performLogin() {
+        const userID = document.getElementById("userID").value;
+        const userPassword = document.getElementById("userPassword").value;
+  
+        if (!userID || !userPassword) {
+          alert("Vui lòng nhập tài khoản và mật khẩu!");
+          return;
+        }
+  
+        try {
+          const response = await fetch(`${BASE_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accountID: userID, password: userPassword }),
+          });
+  
+          if (response.ok) {
+            const data = await response.json();
+            document.getElementById("loggedInEmail").textContent = data.accountID;
+            document.getElementById("detailEmail").textContent = data.accountID;
+            document.getElementById("userName").textContent = data.name;
+            document.getElementById("accountBalance").textContent = data.money;
+            switchPanel("dashboardPanel");
+          } else {
+            const errorData = await response.json();
+            alert(errorData.message);
+          }
+        } catch (error) {
+          alert("Lỗi kết nối đến server! Vui lòng thử lại sau.");
+        }
+      }
+  
+      async function performRegistration() {
+        const newUserID = document.getElementById("newUserID").value;
+        const newUserPassword = document.getElementById("newUserPassword").value;
+        const newUserName = document.getElementById("newUserName").value;
+        const initialDeposit = document.getElementById("initialDeposit").value;
+  
+        if (!newUserID || !newUserPassword || !newUserName || !initialDeposit) {
+          alert("Vui lòng nhập đầy đủ thông tin đăng ký!");
+          return;
+        }
+  
+        try {
+          const response = await fetch(`${BASE_URL}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              accountID: newUserID,
+              password: newUserPassword,
+              name: newUserName,
+              money: initialDeposit,
+            }),
+          });
+  
+          if (response.ok) {
+            alert("Đăng ký thành công! Vui lòng đăng nhập.");
+            switchPanel("loginPanel");
+          } else {
+            const errorData = await response.json();
+            alert(errorData.message);
+          }
+        } catch (error) {
+          alert("Lỗi kết nối đến server! Vui lòng thử lại sau.");
+        }
+      }
+  
+      function viewAccountDetails() {
+        switchPanel("detailsPanel");
+      }
+  
+      function navigateBack(panelId) {
+        switchPanel(panelId);
+      }
+  
+      function switchPanel(panelId) {
+        document.getElementById("loginPanel").style.display = "none";
+        document.getElementById("registrationPanel").style.display = "none";
+        document.getElementById("dashboardPanel").style.display = "none";
+        document.getElementById("detailsPanel").style.display = "none";
+  
+        document.getElementById(panelId).style.display = "block";
+      }
+    </script>
+  </body>
+  
+</html>
